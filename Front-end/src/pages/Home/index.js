@@ -93,6 +93,7 @@ function Home() {
         navigate('/profile'); // Đảm bảo bạn có route /profile
     };
 
+    
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('username');
@@ -202,7 +203,10 @@ function Home() {
                                 onClick={() => openModal(prod)}
                                 style={{ cursor: 'pointer' }}
                             >
-                                <img src={prod.img} alt={prod.name} />
+                                <img
+                                    src={require('../../assets/images/' + prod.imageUrl)}
+                                    alt={prod.name}
+                                />
                                 <div className="menu-product-name">
                                     {idx + 1}. {prod.name}
                                 </div>
@@ -211,7 +215,7 @@ function Home() {
                                     className="add-cart-btn"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        openModal(prod);
+                                        handleAddToCart(prod, 1);
                                     }}
                                 >
                                     <span role="img" aria-label="cart">
