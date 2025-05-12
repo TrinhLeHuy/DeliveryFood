@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 12, 2025 at 02:55 PM
+-- Generation Time: May 12, 2025 at 03:33 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -49,6 +49,21 @@ CREATE TABLE `product` (
   `imageUrl` varchar(255) NOT NULL,
   `category` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `product`
+--
+
+INSERT INTO `product` (`id`, `name`, `price`, `imageUrl`, `category`) VALUES
+(8, 'Bánh kem dâu', 50000, 'cake (2).jpg', 'Cupcake'),
+(9, 'Bánh socola', 60000, 'cake.jpg', 'Cupcake'),
+(10, 'Hải sản sốt cay', 120000, 'seafood.jpg', 'Sea Food'),
+(11, 'Tôm hấp', 95000, 'seafood.jpg', 'Sea Food'),
+(12, 'Nước cam', 25000, 'orangejuice.jpg', 'Juice'),
+(13, 'Coca Cola', 20000, 'fries.jpg', 'Coca'),
+(14, 'Nước cam ép', 30000, 'orangejuice.jpg', 'Orange Juice'),
+(15, 'Thịt bò nướng', 150000, 'meat.jpg', 'Meat'),
+(16, 'Khoai tây chiên', 20000, 'fries.jpg', 'Fries');
 
 -- --------------------------------------------------------
 
@@ -108,7 +123,7 @@ ALTER TABLE `order`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `user`
