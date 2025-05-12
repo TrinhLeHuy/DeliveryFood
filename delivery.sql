@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 12, 2025 at 03:33 PM
+-- Generation Time: May 12, 2025 at 05:38 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -75,15 +75,18 @@ CREATE TABLE `user` (
   `id` int(11) NOT NULL,
   `username` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL
+  `password` varchar(255) NOT NULL,
+  `role` varchar(255) NOT NULL DEFAULT 'user'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user`
 --
 
-INSERT INTO `user` (`id`, `username`, `email`, `password`) VALUES
-(1, 'Trịnh Lê Huy', '3122410252@sv.sgu.edu.vn', '$2b$10$DUelffVY6G.x.h207v8CO.LTgG/eoslplIkm92JqeuPThHvMFa.SG');
+INSERT INTO `user` (`id`, `username`, `email`, `password`, `role`) VALUES
+(1, 'Trịnh Lê Huy', '3122410252@sv.sgu.edu.vn', '$2b$10$DUelffVY6G.x.h207v8CO.LTgG/eoslplIkm92JqeuPThHvMFa.SG', 'user'),
+(3, 'admin', 'admin@example.com', '$2b$10$DUelffVY6G.x.h207v8CO.LTgG/eoslplIkm92JqeuPThHvMFa.SG', 'admin'),
+(4, 'picodengu', 'pinocoder@gmai.com', '$2b$10$AVzgJUSrkAMFpsjR6SPx9O5SZVLWrCKeINPD7Z9KbYkDvn7MO2Bw.', 'user');
 
 --
 -- Indexes for dumped tables
@@ -129,7 +132,7 @@ ALTER TABLE `product`
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables

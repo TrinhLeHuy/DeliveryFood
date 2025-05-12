@@ -10,11 +10,11 @@ export async function signup({ username, email, password }) {
   return res.json();
 }
 
-export async function login({ username, password }) {
+export async function login({ email, password }) {
   const res = await fetch(`${API_URL}/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ email, password }),
   });
   if (!res.ok) throw new Error('Đăng nhập thất bại');
   return res.json();

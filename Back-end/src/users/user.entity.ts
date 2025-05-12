@@ -6,4 +6,5 @@ export class User {
   @Column()                 username: string;
   @Column({ unique: true }) email: string;
   @Column()                 password: string;
+  @Column({ default: 'user' }) role: string; // Thêm dòng này
 }

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; // Sử dụng Link của React Router để chuyển trang
 import styles from './Login.module.scss';
 import images from '~/assets/images';
 import { login } from '../../services/authService';
 
 function Login() {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [remember, setRemember] = useState(false);
     const [error, setError] = useState('');
@@ -15,11 +15,16 @@ function Login() {
         e.preventDefault();
         setError('');
         try {
-            const data = await login({ username, password });
+            const data = await login({ email, password });
             localStorage.setItem('token', data.access_token);
-            localStorage.setItem('username', username); // Lưu tên đăng nhập
+            localStorage.setItem('username', data.username); // Lấy từ backend trả về
+            localStorage.setItem('role', data.role); // Lưu role
             alert('Đăng nhập thành công!');
-            navigate('/');
+            if (data.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/');
+            }
         } catch (err) {
             setError('Đăng nhập thất bại. Vui lòng kiểm tra lại.');
         }
@@ -31,14 +36,14 @@ function Login() {
             {error && <div style={{ color: 'red' }}>{error}</div>}
             <form onSubmit={handleSubmit}>
                 <div className={styles.formGroup}>
-                    <label htmlFor="username">User name</label>
+                    <label htmlFor="email">Email</label>
                     <input
-                        type="text"
-                        id="username"
+                        type="email"
+                        id="email"
                         className={styles.input}
-                        placeholder="Nhập tên đăng nhập..."
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Nhập email..."
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                     />
                 </div>
 
@@ -98,4 +103,3 @@ function Login() {
 }
 
 export default Login;
-

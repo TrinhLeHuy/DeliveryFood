@@ -25,12 +25,19 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.usersRepository.findOneBy({ email: dto.email });
+    // ... xác thực ...
+    const user = await this.usersRepository.findOne({ where: { email: dto.email } });
+    // ... kiểm tra mật khẩu ...
     if (!user || !(await bcrypt.compare(dto.password, user.password))) {
       throw new UnauthorizedException();
     }
-    const payload = { sub: user.id, username: user.username };
-    return { access_token: this.jwtService.sign(payload) };
+    const payload = { sub: user.id, username: user.username, role: user.role };
+    const access_token = this.jwtService.sign(payload);
+    return {
+        access_token,
+        username: user.username,
+        role: user.role,
+    };
   }
 
   async register(dto: RegisterDto) {
