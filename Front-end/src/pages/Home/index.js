@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './HomePage.scss';
 import { useNavigate } from 'react-router-dom';
 import ProductModal from './ProductModal';
+import { getProducts } from '../../services/productService';
 
 // Danh mục cố định như giao diện ban đầu, có thể mở rộng
 const categories = [
@@ -15,55 +16,9 @@ const categories = [
     // Có thể thêm danh mục mới ở đây
 ];
 
-// Sản phẩm thủ công, mỗi sản phẩm gán đúng category, ảnh, tên, giá
-const products = [
-    { id: 1, name: 'Hamburger', price: 123, category: 'Sea Food', img: require('../../assets/images/seafood.jpg') },
-    {
-        id: 2,
-        name: 'Grilled squid satay',
-        price: 123,
-        category: 'Sea Food',
-        img: require('../../assets/images/seafood (2).jpg'),
-    },
-    {
-        id: 3,
-        name: 'Grilled squid satay',
-        price: 123,
-        category: 'Sea Food',
-        img: require('../../assets/images/meat.jpg'),
-    },
-    {
-        id: 4,
-        name: 'Grilled squid satay',
-        price: 123,
-        category: 'Sea Food',
-        img: require('../../assets/images/soup.jpg'),
-    },
-    {
-        id: 5,
-        name: 'Grilled squid satay',
-        price: 123,
-        category: 'Sea Food',
-        img: require('../../assets/images/noddle.jpg'),
-    },
-    { id: 6, name: 'Fresh Cupcake', price: 60, category: 'Cupcake', img: require('../../assets/images/cake.jpg') },
-    { id: 7, name: 'Chocolate Cake', price: 80, category: 'Cupcake', img: require('../../assets/images/cake (2).jpg') },
-    {
-        id: 8,
-        name: 'Orange Juice',
-        price: 50,
-        category: 'Orange Juice',
-        img: require('../../assets/images/orangejuice.jpg'),
-    },
-    { id: 9, name: 'Coca Cola', price: 40, category: 'Coca', img: require('../../assets/images/fries.jpg') },
-    { id: 10, name: 'Apple Juice', price: 55, category: 'Juice', img: require('../../assets/images/orangejuice.jpg') },
-    { id: 11, name: 'Steak', price: 150, category: 'Meat', img: require('../../assets/images/steak.jpg') },
-    { id: 12, name: 'French Fries', price: 45, category: 'Fries', img: require('../../assets/images/fries.jpg') },
-    // Có thể thêm sản phẩm mới ở đây
-];
-
 function Home() {
-    const [selectedCategory, setSelectedCategory] = useState(categories[1].name); // Sea Food mặc định
+    const [selectedCategory, setSelectedCategory] = useState('Sea Food');
+    const [products, setProducts] = useState([]);
     const [cart, setCart] = useState([]);
     const categoriesRef = useRef(null);
     const navigate = useNavigate();
@@ -71,6 +26,27 @@ function Home() {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [modalQty, setModalQty] = useState(1);
     const [cartOpen, setCartOpen] = useState(false);
+    const [username, setUsername] = useState('');
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const data = await getProducts(selectedCategory);
+                setProducts(data);
+            } catch (error) {
+                console.error('Failed to fetch products:', error);
+            }
+        };
+
+        fetchProducts();
+    }, [selectedCategory]);
+
+    useEffect(() => {
+        const storedUsername = localStorage.getItem('username');
+        if (storedUsername) {
+            setUsername(storedUsername);
+        }
+    }, []);
 
     const scrollCategories = (dir) => {
         if (categoriesRef.current) {
@@ -109,12 +85,75 @@ function Home() {
 
     const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
-    // Lọc sản phẩm theo danh mục
-    const filteredProducts = products.filter((prod) => prod.category === selectedCategory);
+    const handleLoginClick = () => {
+        navigate('/login');
+    };
+
+    const handleProfileClick = () => {
+        navigate('/profile'); // Đảm bảo bạn có route /profile
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        setUsername('');
+        navigate('/'); // hoặc reload lại trang nếu muốn
+    };
 
     return (
         <>
             <div className="menu-header-row">
+                {/* Thêm nút đăng nhập hoặc tên user ở đây */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: 16, gap: 12 }}>
+                    {username ? (
+                        <>
+                            <button
+                                onClick={handleProfileClick}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#ff2967',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    fontSize: 16,
+                                }}
+                            >
+                                {username}
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                style={{
+                                    background: '#eee',
+                                    color: '#333',
+                                    border: 'none',
+                                    borderRadius: 4,
+                                    padding: '6px 12px',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    fontSize: 14,
+                                }}
+                            >
+                                Đăng xuất
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                            onClick={handleLoginClick}
+                            style={{
+                                background: '#ff2967',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: 4,
+                                padding: '8px 16px',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                fontSize: 16,
+                            }}
+                        >
+                            Đăng nhập
+                        </button>
+                    )}
+                </div>
                 <div className="header-left"></div>
                 <div className="header-right">
                     <button className="cart-toggle-btn" onClick={() => setCartOpen(true)}>
@@ -156,7 +195,7 @@ function Home() {
                         </button>
                     </div>
                     <div className="menu-products">
-                        {filteredProducts.map((prod, idx) => (
+                        {products.map((prod, idx) => (
                             <div
                                 className="menu-product"
                                 key={prod.id}
@@ -234,7 +273,16 @@ function Home() {
                     <div className="cart-total-tax">(Incl. tax 10% = Kr {(total * 0.1).toFixed(2)})</div>
                     <button
                         className="cart-pay-btn"
-                        onClick={() => navigate('/payment', { state: { cartTotal: total } })}
+                        onClick={() => {
+                            const token = localStorage.getItem('token');
+                            if (!token) {
+                                alert('Bạn cần đăng nhập để thanh toán!');
+                                navigate('/login');
+                                return;
+                            }
+                            // Chuyển sang trang payment, truyền tổng tiền qua state
+                            navigate('/payment', { state: { cartTotal: total } });
+                        }}
                     >
                         PAYMENT
                     </button>

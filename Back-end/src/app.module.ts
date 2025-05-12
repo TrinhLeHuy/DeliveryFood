@@ -1,22 +1,29 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { ProductsModule } from './products/products.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: '', // mật khẩu XAMPP mặc định là rỗng
-      database: 'delivery_food_db',
+      host: process.env.DB_HOST,
+      port: +(process.env.DB_PORT || 3306),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
       autoLoadEntities: true,
-      synchronize: true, // chỉ dùng phát triển, KHÔNG dùng production
+      synchronize: true, // Chỉ dùng cho môi trường dev
     }),
     UsersModule,
+    AuthModule,
+    ProductsModule,
+    OrdersModule,
   ],
 })
 export class AppModule {}

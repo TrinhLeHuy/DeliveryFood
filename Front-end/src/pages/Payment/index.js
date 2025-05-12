@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './PaymentPage.scss';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -9,13 +9,20 @@ function Payment() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Bạn cần đăng nhập để thanh toán!');
+      navigate('/login');
+    }
+  }, [navigate]);
+
   const handlePayment = () => {
     setIsProcessing(true);
     // Simulate payment processing
     setTimeout(() => {
       setIsProcessing(false);
       setShowSuccess(true);
-      // Redirect to home after 2 seconds
       setTimeout(() => {
         navigate('/menu');
       }, 2000);
@@ -85,4 +92,4 @@ function Payment() {
   );
 }
 
-export default Payment; 
+export default Payment;

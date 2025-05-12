@@ -1,24 +1,34 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // Sử dụng Link của React Router để chuyển trang
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom'; // Sử dụng Link của React Router để chuyển trang
 import styles from './Login.module.scss';
 import images from '~/assets/images';
+import { login } from '../../services/authService';
 
 function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [remember, setRemember] = useState(false);
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Xử lý đăng nhập tại đây
-        console.log('Username:', username);
-        console.log('Password:', password);
-        console.log('Remember me:', remember);
+        setError('');
+        try {
+            const data = await login({ username, password });
+            localStorage.setItem('token', data.access_token);
+            localStorage.setItem('username', username); // Lưu tên đăng nhập
+            alert('Đăng nhập thành công!');
+            navigate('/');
+        } catch (err) {
+            setError('Đăng nhập thất bại. Vui lòng kiểm tra lại.');
+        }
     };
 
     return (
         <div className={styles.loginForm}>
             <h2>Login</h2>
+            {error && <div style={{ color: 'red' }}>{error}</div>}
             <form onSubmit={handleSubmit}>
                 <div className={styles.formGroup}>
                     <label htmlFor="username">User name</label>
@@ -88,3 +98,4 @@ function Login() {
 }
 
 export default Login;
+

@@ -1,23 +1,31 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // Dùng Link để chuyển trang
+import { Link, useNavigate } from 'react-router-dom'; // Dùng Link để chuyển trang
 import styles from './Signup.module.scss';
+import { signup } from '../../services/authService';
 
 function Signup() {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
 
-    const handleSignup = (e) => {
+    const handleSignup = async (e) => {
         e.preventDefault();
-        // Xử lý đăng ký tại đây
-        console.log('Username:', username);
-        console.log('Email:', email);
-        console.log('Password:', password);
+        setError('');
+        try {
+            await signup({ username, email, password });
+            alert('Đăng ký thành công! Vui lòng đăng nhập.');
+            navigate('/login');
+        } catch (err) {
+            setError('Đăng ký thất bại. Vui lòng thử lại.');
+        }
     };
 
     return (
         <div className={styles.signupForm}>
             <h2>Sign Up</h2>
+            {error && <div style={{ color: 'red' }}>{error}</div>}
             <form onSubmit={handleSignup}>
                 <div className={styles.formGroup}>
                     <label htmlFor="username">User name</label>
