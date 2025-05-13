@@ -93,7 +93,6 @@ function Home() {
         navigate('/profile'); // Đảm bảo bạn có route /profile
     };
 
-    
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('username');
@@ -105,7 +104,9 @@ function Home() {
         <>
             <div className="menu-header-row">
                 {/* Thêm nút đăng nhập hoặc tên user ở đây */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: 16, gap: 12 }}>
+                <div
+                    style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: 16, gap: 12 }}
+                >
                     {username ? (
                         <>
                             <button
@@ -203,10 +204,7 @@ function Home() {
                                 onClick={() => openModal(prod)}
                                 style={{ cursor: 'pointer' }}
                             >
-                                <img
-                                    src={require('../../assets/images/' + prod.imageUrl)}
-                                    alt={prod.name}
-                                />
+                                <img src={require('../../assets/images/' + prod.imageUrl)} alt={prod.name} />
                                 <div className="menu-product-name">
                                     {idx + 1}. {prod.name}
                                 </div>
@@ -243,7 +241,8 @@ function Home() {
                         {cart.map((item, idx) => (
                             <div className="cart-item" key={item.id}>
                                 <div className="cart-item-left">
-                                    <img src={item.img} alt={item.name} className="cart-item-img" />
+                                <img src={require('../../assets/images/' + item.imageUrl)} alt={item.name} className="cart-item-img"/>
+                                   
                                 </div>
                                 <div className="cart-item-main">
                                     <div className="cart-item-title">

@@ -54,6 +54,11 @@ function Payment() {
       <div className="payment-content">
         <div className="payment-box">
           <div className="payment-business">
+            <img 
+                alt="Business Logo" 
+                className="payment-business-logo" 
+                style={{ width: 48, height: 48, borderRadius: '50%', marginRight: 12 }}
+            />
             <span className="business-name">Business name</span>
             <div className="payment-amount-group">
               <span className="payment-amount">{cartTotal.toFixed(2)} NOK</span>

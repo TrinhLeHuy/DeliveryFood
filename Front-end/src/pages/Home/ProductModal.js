@@ -11,7 +11,7 @@ function ProductModal({ open, onClose, product, quantity, setQuantity, onAddToCa
         <div className="modal-header">ADD TO CART</div>
         <div className="modal-body">
           <div className="modal-img-block">
-            <img src={product.img} alt={product.name} className="modal-img" />
+            <img src={require('../../assets/images/' + product.imageUrl)} alt={product.name} className="modal-img" />
           </div>
           <div className="modal-info-block">
             <div className="modal-row">
@@ -56,4 +56,4 @@ function ProductModal({ open, onClose, product, quantity, setQuantity, onAddToCa
   );
 }
 
-export default ProductModal; 
+export default ProductModal;
