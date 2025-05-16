@@ -1,6 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { User }    from '../users/user.entity';
-
+import { OrderItem } from '../order-item/entities/order-item.entity';
 @Entity()
 export class Order {
   @PrimaryGeneratedColumn() id: number;
@@ -8,9 +8,14 @@ export class Order {
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @Column('simple-json')
-  items: { productId: number; quantity: number }[];
+  // @Column('simple-json')
+  // items: { productId: number; quantity: number }[]; chuyển sang sử dụng order-item
 
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.order, {
+    cascade: true, // nếu muốn lưu order và order_items cùng lúc
+  })
+  items: OrderItem[];
+  
   @Column('decimal') total: number;
   @Column({ type: 'enum', enum: ['pending','delivered'], default: 'pending' })
   status: 'pending' | 'delivered';
