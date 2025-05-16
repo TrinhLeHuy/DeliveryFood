@@ -18,7 +18,7 @@ import { OrdersModule } from './orders/orders.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       autoLoadEntities: true,
-      synchronize: true, // Chỉ dùng cho môi trường dev
+      synchronize: true,
     }),
     UsersModule,
     AuthModule,
