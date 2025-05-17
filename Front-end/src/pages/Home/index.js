@@ -283,9 +283,14 @@ function Home() {
                                 navigate('/login');
                                 return;
                             }
-                            // Chuyển sang trang payment, truyền tổng tiền qua state
+                        
+                            // 👉 Lưu giỏ hàng vào localStorage trước khi thanh toán
+                            localStorage.setItem('cart', JSON.stringify(cart));
+                        
+                            // 👉 Chuyển sang trang thanh toán, truyền tổng tiền
                             navigate('/payment', { state: { cartTotal: total } });
                         }}
+                        
                     >
                         PAYMENT
                     </button>

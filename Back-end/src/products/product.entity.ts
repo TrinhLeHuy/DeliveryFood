@@ -7,4 +7,6 @@ export class Product {
   @Column('decimal')        price: number;
   @Column()                 imageUrl: string;
   @Column({ nullable: true }) category: string;
+  @Column({ type: 'int', default: 0 }) quantity: number;
+  
 }

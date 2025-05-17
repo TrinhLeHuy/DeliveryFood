@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './PaymentPage.scss';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { parseJwt } from '../../utils/jwt';
 
 function Payment() {
   const navigate = useNavigate();
@@ -17,18 +18,56 @@ function Payment() {
     }
   }, [navigate]);
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     setIsProcessing(true);
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      setShowSuccess(true);
+  
+    const token = localStorage.getItem('token');
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const user = parseJwt(token);
+  
+    if (!user) {
+      alert('Token không hợp lệ hoặc đã hết hạn!');
+      navigate('/login');
+      return;
+    }
+  
+    const orderDto = {
+      userId: user.sub, // Lấy từ token
+      items: cart.map(item => ({
+        productId: item.id,
+        quantity: item.qty
+      }))
+    };
+  
+    try {
+      const res = await fetch('http://localhost:3000/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(orderDto)
+      });
+  
+      if (!res.ok) throw new Error('Tạo đơn hàng thất bại');
+  
+      // Thành công
       setTimeout(() => {
-        navigate('/menu');
-      }, 2000);
-    }, 1500);
+        setIsProcessing(false);
+        setShowSuccess(true);
+        // Optionally clear cart
+        localStorage.removeItem('cart');
+        setTimeout(() => {
+          navigate('/menu');
+        }, 2000);
+      }, 1500);
+    } catch (err) {
+      setIsProcessing(false);
+      alert(err.message);
+    }
   };
-
+  
+  
   return (
     <div className="payment-container">
       {showSuccess && (
