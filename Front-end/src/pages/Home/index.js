@@ -1,12 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
-import './HomePage.scss';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import productApi from '~/api/productApi';
+import './HomePage.scss';
 import ProductModal from './ProductModal';
-import { getProducts } from '../../services/productService';
 
 // Danh mục cố định như giao diện ban đầu, có thể mở rộng
 const categories = [
-    { name: 'Cupcake', img: require('../../assets/images/cake.jpg') },
+    { name: 'Món chính', img: require('../../assets/images/cake.jpg') },
     { name: 'Sea Food', img: require('../../assets/images/seafood.jpg') },
     { name: 'Juice', img: require('../../assets/images/orangejuice.jpg') },
     { name: 'Coca', img: require('../../assets/images/fries.jpg') },
@@ -28,18 +28,26 @@ function Home() {
     const [cartOpen, setCartOpen] = useState(false);
     const [username, setUsername] = useState('');
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const data = await getProducts(selectedCategory);
-                setProducts(data);
-            } catch (error) {
-                console.error('Failed to fetch products:', error);
-            }
-        };
+    // useEffect(() => {
+    //     const fetchProducts = async () => {
+    //         try {
+    //             const data = await productApi.getAll();
+    //             setProducts(data);
+    //         } catch (error) {
+    //             console.error('Failed to fetch products:', error);
+    //         }
+    //     };
 
-        fetchProducts();
-    }, [selectedCategory]);
+    //     fetchProducts();
+    // }, [selectedCategory]);
+    useEffect(() => {
+        productApi.getAllProducts()
+            .then(res => {
+                console.log(res.data.data);
+                setProducts(res.data.data);
+            })
+            .catch(console.error);
+    }, []);
 
     useEffect(() => {
         const storedUsername = localStorage.getItem('username');
@@ -64,6 +72,7 @@ function Home() {
         setModalOpen(false);
         setSelectedProduct(null);
     };
+
     const handleAddToCart = (product, qty) => {
         setCart((prev) => {
             const found = prev.find((item) => item.id === product.id);
@@ -204,11 +213,16 @@ function Home() {
                                 onClick={() => openModal(prod)}
                                 style={{ cursor: 'pointer' }}
                             >
-                                <img src={require('../../assets/images/' + prod.imageUrl)} alt={prod.name} />
+                                <img
+                                    src={`http://localhost:3000/uploads/${prod.image}`}
+                                    alt={prod.name}
+                                // style={{ width: '80px', height: '80px'}}
+                                />
+
                                 <div className="menu-product-name">
                                     {idx + 1}. {prod.name}
                                 </div>
-                                <div className="menu-product-price">Kr {prod.price},00</div>
+                                <div className="menu-product-price">VNĐ {prod.price}</div>
                                 <button
                                     className="add-cart-btn"
                                     onClick={(e) => {
@@ -241,8 +255,13 @@ function Home() {
                         {cart.map((item, idx) => (
                             <div className="cart-item" key={item.id}>
                                 <div className="cart-item-left">
-                                <img src={require('../../assets/images/' + item.imageUrl)} alt={item.name} className="cart-item-img"/>
-                                   
+                                    <img
+                                        src={`http://localhost:3000/uploads/${item.image}`}
+                                        alt={item.name}
+                                        style={{ width: '100px', height: '80px' }}
+                                    />
+
+
                                 </div>
                                 <div className="cart-item-main">
                                     <div className="cart-item-title">
@@ -261,9 +280,10 @@ function Home() {
                                     </button>
                                 </div>
                                 <div className="cart-item-priceblock">
-                                    <div className="cart-item-price">Kr {item.price},00</div>
+                                    <div className="cart-item-price">{item.price}</div>
                                     <div className="cart-item-tax">
-                                        (Incl. tax 10% = Kr {(item.price * 0.1).toFixed(2)})
+                                        {/* (Incl. tax 10% = VNĐ {(item.price * 0.1).toFixed(0)}) */}
+                                        VNĐ
                                     </div>
                                 </div>
                             </div>
@@ -271,9 +291,9 @@ function Home() {
                     </div>
                     <div className="cart-total-block">
                         <div className="cart-total-label">Total:</div>
-                        <div className="cart-total-value">Kr {total.toFixed(2)}</div>
+                        <div className="cart-total-value">VNĐ {total.toFixed(0)}</div>
                     </div>
-                    <div className="cart-total-tax">(Incl. tax 10% = Kr {(total * 0.1).toFixed(2)})</div>
+                    <div className="cart-total-tax">(Incl. tax 10% = VNĐ {(total * 0.1).toFixed(0)})</div>
                     <button
                         className="cart-pay-btn"
                         onClick={() => {
@@ -283,14 +303,14 @@ function Home() {
                                 navigate('/login');
                                 return;
                             }
-                        
+
                             // 👉 Lưu giỏ hàng vào localStorage trước khi thanh toán
                             localStorage.setItem('cart', JSON.stringify(cart));
-                        
+
                             // 👉 Chuyển sang trang thanh toán, truyền tổng tiền
                             navigate('/payment', { state: { cartTotal: total } });
                         }}
-                        
+
                     >
                         PAYMENT
                     </button>
