@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { publicRoutes } from './routes';
 import { DefaultLayout } from './components/Layout';
 import { Fragment } from 'react';
+import TableQRManager from './pages/Admin/TableQRManager';
 function App() {
     return (
         <Router>
@@ -27,6 +28,7 @@ function App() {
                             />
                         );
                     })}
+                    <Route path="/admin/table-qr" element={<TableQRManager />} />
                 </Routes>
             </div>
         </Router>
