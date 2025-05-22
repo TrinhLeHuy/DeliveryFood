@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/users';
+const API_URL = 'http://localhost:3000/user';
 
 export async function signup({ username, email, password }) {
   const res = await fetch(`${API_URL}/register`, {
@@ -21,13 +21,13 @@ export async function login({ email, password }) {
 }
 
 export async function getProducts() {
-  const res = await fetch('http://localhost:3000/products');
+  const res = await fetch('http://localhost:3000/product');
   return res.json();
 }
 
 export async function createOrder(items) {
   const token = localStorage.getItem('token');
-  const res = await fetch('http://localhost:3000/orders', {
+  const res = await fetch('http://localhost:3000/order', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

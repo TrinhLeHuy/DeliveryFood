@@ -1,84 +1,154 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
+import orderApi from '~/api/oderApi';
+import productApi from '~/api/productApi';
 import './OrderManagement.scss';
 
 function OrderManagement() {
-    const [orders, setOrders] = useState([
-        {
-            id: '1',
-            customer: 'Nguyễn Văn A',
-            items: [
-                { name: 'Cơm gà', quantity: 2, price: 45000 },
-                { name: 'Trà sữa', quantity: 1, price: 35000 },
-            ],
-            total: 125000,
-            status: 'pending',
-            time: '2024-02-20 12:30',
-            paymentMethod: 'Tiền mặt',
-        },
-        {
-            id: 2,
-            customer: 'Trần Thị B',
-            items: [
-                { name: 'Phở bò', quantity: 1, price: 55000 },
-                { name: 'Trà sữa', quantity: 1, price: 25000 },
-            ],
-            total: 80000,
-            status: 'processing',
-            time: '10:25',
-            paymentMethod: 'Chuyển khoản',
-        },
-        {
-            id: 3,
-            customer: 'Lê Văn C',
-            items: [
-                { name: 'Bún chả', quantity: 2, price: 40000 },
-                { name: 'Nước cam', quantity: 2, price: 20000 },
-            ],
-            total: 120000,
-            status: 'completed',
-            time: '10:20',
-            paymentMethod: 'QR Code',
-        },
-    ]);
-
+    const [orders, setOrders] = useState([]);
+    // const [price, setPrice] = useState();
+    const [products, setProducts] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingOrder, setEditingOrder] = useState(null);
     const [newOrder, setNewOrder] = useState({
         customer: '',
+        phone: '',
         items: [{ name: '', quantity: 1, price: 0 }],
-        paymentMethod: 'Tiền mặt',
+        paymentMethod: 'cod',
     });
+    useEffect(() => {
+        async function fetchOrders() {
+            try {
+                const response = await orderApi.getAll();
+                // Map API response về đúng cấu trúc
+                console.log(response.data);
+                // const mapped = response.data.map(o => ({
+                //     id: o.id,
+                //     customer: customerApi.getById(o.customer.id),
+                //     items: orderItemApi.getByOrder(o.id),
+                //     total: o.total,
+                //     status: o.status,
+                //     createdAt: o.createAt,
+                //     paymentMethod: o.paymentMethod,
+                // }));
+                setOrders(response.data);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        fetchOrders();
+    }, []);
+    useEffect(() => {
+        async function fetchProducts() {
+            try {
+                const response = await productApi.getAll();
+                setProducts(response.data.data);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        fetchProducts();
+    }, []);
 
-    const handleStatusChange = (orderId, newStatus) => {
-        setOrders(orders.map((order) => (order.id === orderId ? { ...order, status: newStatus } : order)));
+    // Khi chọn sản phẩm trong modal tạo đơn hàng
+    const handleSelectProduct = async (index, productId) => {
+        try {
+            const res = await productApi.getById(productId);
+            const product = res.data;
+
+            const updatedItems = [...newOrder.items];
+            updatedItems[index] = {
+                productId,
+                name: product.name,
+                quantity: 1,
+                price: product.price,
+            };
+
+            setNewOrder({ ...newOrder, items: updatedItems });
+        } catch (err) {
+            console.error('Lỗi khi lấy sản phẩm:', err);
+        }
     };
 
-    const handleCreateOrder = () => {
-        const order = {
-            id: String(orders.length + 1),
-            ...newOrder,
-            total: newOrder.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-            status: 'pending',
-            time: new Date().toLocaleString('vi-VN'),
-        };
-        setOrders([...orders, order]);
-        setShowCreateModal(false);
+
+    const handleQuantityChange = (index, quantity) => {
+        const updatedItems = [...newOrder.items];
+        updatedItems[index].quantity = quantity;
+        setNewOrder({ ...newOrder, items: updatedItems });
+    };
+
+    const addItemField = () => {
         setNewOrder({
-            customer: '',
-            items: [{ name: '', quantity: 1, price: 0 }],
-            paymentMethod: 'Tiền mặt',
+            ...newOrder,
+            items: [...newOrder.items, { productId: '', name: '', quantity: 1, price: 0 }],
         });
+    };
+
+    const removeItemField = (index) => {
+        setNewOrder({
+            ...newOrder,
+            items: newOrder.items.filter((_, i) => i !== index),
+        });
+    };
+
+    // Gửi tạo đơn hàng lên API
+    const handleCreateOrder = () => {
+        const total = newOrder.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+        const orderData = {
+            customerName: newOrder.customer,
+            customerPhone: newOrder.phone,
+            items: newOrder.items.map(i => ({
+                name: i.name,
+                productId: i.productId,
+                quantity: i.quantity,
+                price: i.price,
+            })),
+            paymentMethod: newOrder.paymentMethod,
+            status: 'pending',
+            createAt: new Date().toLocaleString('vi-VN'),
+            total: total,
+        };
+        console.log(orderData);
+        orderApi.create(orderData)
+            .then(res => {
+                setOrders([...orders, res.data]);
+                setShowCreateModal(false);
+                setNewOrder({
+                    customer: '',
+                    phone: '',
+                    items: [{ productId: '', name: '', quantity: 1, price: 0 }],
+                    paymentMethod: 'cod',
+                });
+            })
+            .catch(err => console.error(err));
+        alert("Tạo đơn hàng thành công!");
+
+    };
+
+
+    // const handleStatusChange = (orderId, newStatus) => {
+    //     setOrders(orders.map((order) => (order.id === orderId ? { ...order, status: newStatus } : order)));
+    //     orderApi.changeStatus(orderId,data);
+    // };
+    const handleStatusChange = (orderId, newStatus) => {
+        orderApi.update(orderId, { status: newStatus })
+            .then(res => {
+                // cập nhật lại state orders
+                setOrders(orders.map(o => o.id === orderId ? res.data : o));
+            })
+            .catch(err => console.error(err));
+        alert("Cập nhật trạng thái thành công!")
     };
 
     const handleEditOrder = () => {
         const updatedOrders = orders.map((order) =>
             order.id === editingOrder.id
                 ? {
-                      ...editingOrder,
-                      total: editingOrder.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-                  }
+                    ...editingOrder,
+                    total: editingOrder.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+                }
                 : order,
         );
         setOrders(updatedOrders);
@@ -96,35 +166,6 @@ function OrderManagement() {
         setEditingOrder({ ...order });
         setShowEditModal(true);
     };
-
-    const addItemField = (isEdit = false) => {
-        if (isEdit) {
-            setEditingOrder({
-                ...editingOrder,
-                items: [...editingOrder.items, { name: '', quantity: 1, price: 0 }],
-            });
-        } else {
-            setNewOrder({
-                ...newOrder,
-                items: [...newOrder.items, { name: '', quantity: 1, price: 0 }],
-            });
-        }
-    };
-
-    const removeItemField = (index, isEdit = false) => {
-        if (isEdit) {
-            setEditingOrder({
-                ...editingOrder,
-                items: editingOrder.items.filter((_, i) => i !== index),
-            });
-        } else {
-            setNewOrder({
-                ...newOrder,
-                items: newOrder.items.filter((_, i) => i !== index),
-            });
-        }
-    };
-
     const updateItemField = (index, field, value, isEdit = false) => {
         if (isEdit) {
             const updatedItems = [...editingOrder.items];
@@ -158,9 +199,9 @@ function OrderManagement() {
                 return 'Chờ xử lý';
             case 'processing':
                 return 'Đang xử lý';
-            case 'completed':
+            case 'shipped':
                 return 'Hoàn thành';
-            case 'cancelled':
+            case 'paid':
                 return 'Đã hủy';
             default:
                 return status;
@@ -203,7 +244,7 @@ function OrderManagement() {
                         {orders.map((order) => (
                             <tr key={order.id}>
                                 <td>#{order.id}</td>
-                                <td>{order.customer}</td>
+                                <td>{order.customer.name}</td>
                                 <td>{order.total.toLocaleString('vi-VN')}đ</td>
                                 <td>
                                     <span
@@ -213,8 +254,27 @@ function OrderManagement() {
                                         {getStatusText(order.status)}
                                     </span>
                                 </td>
-                                <td>{order.time}</td>
-                                <td>{order.paymentMethod}</td>
+                                <td>
+                                    {new Date(order.createdAt).toLocaleString('vi-VN', {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        second: '2-digit',
+                                    })}
+                                </td>
+                                <td>
+                                    {order.paymentMethod === 'cod'
+                                        ? 'Tiền mặt'
+                                        : order.paymentMethod === 'bank_transfer'
+                                            ? 'Chuyển khoản'
+                                            : order.paymentMethod === 'momo'
+                                                ? 'Momo'
+                                                : order.paymentMethod === 'vnpay'
+                                                    ? 'VNPAY'
+                                                    : 'Không xác định'}
+                                </td>
                                 <td>
                                     <div className="action-buttons">
                                         <select
@@ -224,8 +284,8 @@ function OrderManagement() {
                                         >
                                             <option value="pending">Chờ xử lý</option>
                                             <option value="processing">Đang xử lý</option>
-                                            <option value="completed">Hoàn thành</option>
-                                            <option value="cancelled">Đã hủy</option>
+                                            <option value="shipped">Hoàn thành</option>
+                                            <option value="paid">Đã hủy</option>
                                         </select>
                                         <button onClick={() => setSelectedOrder(order)}>
                                             <span className="material-symbols-outlined">visibility</span>
@@ -250,15 +310,23 @@ function OrderManagement() {
                         <h2>Chi tiết đơn hàng #{selectedOrder.id}</h2>
                         <div className="detail-row">
                             <span>Khách hàng:</span>
-                            <span>{selectedOrder.customer}</span>
+                            <span>{selectedOrder.customer.name}</span>
                         </div>
                         <div className="detail-row">
                             <span>Thời gian:</span>
-                            <span>{selectedOrder.time}</span>
+                            <span>{selectedOrder.createdAt}</span>
                         </div>
                         <div className="detail-row">
                             <span>Phương thức thanh toán:</span>
-                            <span>{selectedOrder.paymentMethod}</span>
+                            <span>{selectedOrder.paymentMethod === 'cod'
+                                ? 'Tiền mặt'
+                                : selectedOrder.paymentMethod === 'bank_transfer'
+                                    ? 'Chuyển khoản'
+                                    : selectedOrder.paymentMethod === 'momo'
+                                        ? 'Momo'
+                                        : selectedOrder.paymentMethod === 'vnpay'
+                                            ? 'VNPAY'
+                                            : 'Không xác định'}</span>
                         </div>
                         <div className="items-list">
                             <h3>Danh sách sản phẩm</h3>
@@ -294,32 +362,51 @@ function OrderManagement() {
                             />
                         </div>
                         <div className="form-group">
+                            <label>Số điện thoại:</label>
+                            <input
+                                type="text"
+                                value={newOrder.phone}
+                                onChange={(e) => setNewOrder({ ...newOrder, phone: e.target.value })}
+                                placeholder="Nhập số điện thoại"
+                            />
+                        </div>
+                        <div className="form-group">
                             <label>Phương thức thanh toán:</label>
                             <select
                                 value={newOrder.paymentMethod}
                                 onChange={(e) => setNewOrder({ ...newOrder, paymentMethod: e.target.value })}
                             >
-                                <option value="Tiền mặt">Tiền mặt</option>
-                                <option value="Chuyển khoản">Chuyển khoản</option>
-                                <option value="Thẻ">Thẻ</option>
+                                <option value="cod">Tiền mặt</option>
+                                <option value="momo">Chuyển khoản</option>
+                                <option value="bank_transfer">Thẻ</option>
                             </select>
                         </div>
                         <div className="form-group">
                             <label>Sản phẩm:</label>
                             {newOrder.items.map((item, index) => (
                                 <div key={index} className="item-input-group">
-                                    <input
+                                    {/* <input
                                         type="text"
                                         value={item.name}
                                         onChange={(e) => updateItemField(index, 'name', e.target.value)}
                                         placeholder="Tên sản phẩm"
-                                    />
+                                    /> */}
+                                    <select
+                                        value={item.productId || ''}
+                                        onChange={(e) => handleSelectProduct(index, e.target.value)}
+                                    >
+                                        <option value="">-- Chọn sản phẩm --</option>
+                                        {products.map((product) => (
+                                            <option key={product.id} value={product.id}>
+                                                {product.name}
+                                            </option>
+                                        ))}
+                                    </select>
                                     <input
                                         type="number"
+                                        min={1}
                                         value={item.quantity}
-                                        onChange={(e) => updateItemField(index, 'quantity', parseInt(e.target.value))}
-                                        min="1"
-                                        placeholder="Số lượng"
+                                        onChange={(e) => handleQuantityChange(index, parseInt(e.target.value))}
                                     />
                                     <input
                                         type="number"
@@ -350,6 +437,8 @@ function OrderManagement() {
                 </div>
             )}
 
+
+
             {showEditModal && editingOrder && (
                 <div className="edit-order-modal">
                     <div className="modal-content">
@@ -369,9 +458,9 @@ function OrderManagement() {
                                 value={editingOrder.paymentMethod}
                                 onChange={(e) => setEditingOrder({ ...editingOrder, paymentMethod: e.target.value })}
                             >
-                                <option value="Tiền mặt">Tiền mặt</option>
-                                <option value="Chuyển khoản">Chuyển khoản</option>
-                                <option value="Thẻ">Thẻ</option>
+                                <option value="cod">Tiền mặt</option>
+                                <option value="momo">Chuyển khoản</option>
+                                <option value="bank_transfer">Thẻ</option>
                             </select>
                         </div>
                         <div className="form-group">
