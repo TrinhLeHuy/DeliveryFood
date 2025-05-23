@@ -11,7 +11,15 @@ export class OrderController {
   create(@Body() createOrderDto: CreateOrderDto) {
     return this.orderService.create(createOrderDto);
   }
-
+  
+  @Get('total')
+  getTotalRevenue() {
+    return this.orderService.getTotalRevenue();
+  }
+  @Get('total-orders')
+  getTotalOrders() {
+    return this.orderService.getTotalOrders();
+  }
   // @Get()
   // findAll() {
   //   return this.orderService.findAll();
@@ -43,4 +51,7 @@ export class OrderController {
   ) {
     return this.orderService.updateStatus(id, status);
   }
+
+  
+
 }

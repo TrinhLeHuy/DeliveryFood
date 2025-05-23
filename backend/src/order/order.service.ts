@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from 'src/product/entities/product.entity';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { Customer } from '../customer/entities/customer.entity';
 import { OrderItem } from '../order-item/entities/order-item.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -128,4 +128,18 @@ export class OrderService {
     order.status = status;
     return this.orderRepo.save(order);
   }
+  // tổng doanh thu
+  async getTotalRevenue(): Promise<number> {
+    const orders = await this.orderRepo.findBy({
+      status: Not(OrderStatus.PENDING),
+    });
+  
+    return orders.reduce((sum, o) => sum + o.total, 0);
+  }
+  // tổng số đơn
+  async getTotalOrders(): Promise<number> {
+    return await this.orderRepo.count(); // đếm tất cả đơn hàng trong bảng orders
+  }
+  
+  
 }
