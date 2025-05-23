@@ -1,4 +1,6 @@
-import React from 'react';
+
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import './RevenueStats.scss';
 
 function RevenueStats() {
@@ -25,7 +27,19 @@ function RevenueStats() {
         { name: 'Trà sữa', sold: 150 },
         { name: 'Nước cam', sold: 0 },
     ];
-
+    const [totalRevenue, setTotalRevenue] = useState(0);
+    useEffect(() => {
+        const fetchTotalRevenue = async () => {
+          try {
+            const response = await axios.get('http://localhost:3000/order/total');
+            setTotalRevenue(response.data); 
+          } catch (error) {
+            console.error('Lỗi khi lấy tổng doanh thu:', error);
+          }
+        };
+    
+        fetchTotalRevenue();
+      }, []);
     // Tìm món bán chạy nhất và bán không chạy nhất
     const bestSeller = foodStats.reduce((max, item) => (item.sold > max.sold ? item : max), foodStats[0]);
     const worstSeller = foodStats.reduce((min, item) => (item.sold < min.sold ? item : min), foodStats[0]);
@@ -55,7 +69,7 @@ function RevenueStats() {
                     </div>
                     <div className="stat-info">
                         <h3>Tổng doanh thu</h3>
-                        <p className="stat-value">{stats.totalRevenue.toLocaleString('vi-VN')}đ</p>
+                        <p className="stat-value">{totalRevenue.toLocaleString('vi-VN')}đ</p>
                         <span className="stat-change positive">+12.5%</span>
                     </div>
                 </div>

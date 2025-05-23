@@ -1,52 +1,115 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
 import './AccountManagement.scss';
 
 function AccountManagement() {
-    const [users, setUsers] = useState([
-        {
-            id: 1,
-            username: 'admin',
-            email: 'admin@example.com',
-            role: 'admin',
-            status: 'active',
-            lastLogin: '2024-03-15 10:30',
-        },
-        {
-            id: 2,
-            username: 'staff1',
-            email: 'staff1@example.com',
-            role: 'staff',
-            status: 'active',
-            lastLogin: '2024-03-15 09:15',
-        },
-        {
-            id: 3,
-            username: 'user1',
-            email: 'user1@example.com',
-            role: 'user',
-            status: 'inactive',
-            lastLogin: '2024-03-14 15:45',
-        },
-    ]);
-
+    // const [users, setUsers] = useState([
+    //     {
+    //         id: 1,
+    //         username: 'admin',
+    //         email: 'admin@example.com',
+    //         role: 'admin',
+    //         status: 'active',
+    //         lastLogin: '2024-03-15 10:30',
+    //     },
+    //     {
+    //         id: 2,
+    //         username: 'staff1',
+    //         email: 'staff1@example.com',
+    //         role: 'staff',
+    //         status: 'active',
+    //         lastLogin: '2024-03-15 09:15',
+    //     },
+    //     {
+    //         id: 3,
+    //         username: 'user1',
+    //         email: 'user1@example.com',
+    //         role: 'user',
+    //         status: 'inactive',
+    //         lastLogin: '2024-03-14 15:45',
+    //     },
+    // ]);
+    const [users, setUsers] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    // useEffect(() => {
+    //     axios.get('http://localhost:3000/user')
+    //         .then(response => {
+    //             const usersWithFormattedDate = response.data.map(user => ({
+    //                 ...user,
+    //                 lastLogin: user.lastLogin 
+    //                     ? new Date(user.lastLogin).toLocaleString('vi-VN') 
+    //                     : 'Chưa đăng nhập'
+    //             }));
+    //             setUsers(usersWithFormattedDate);
+    //         })
+    //         .catch(error => {
+    //             console.error('Lỗi khi lấy danh sách người dùng:', error);
+    //         });
+    // }, []);
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const url = searchTerm.trim()
+                    ? `http://localhost:3000/user/search/by-name?q=${encodeURIComponent(searchTerm)}`
+                    : `http://localhost:3000/user`;
+    
+                const response = await axios.get(url);
+                const usersWithFormattedDate = response.data.map(user => ({
+                    ...user,
+                    lastLogin: user.lastLogin
+                        ? new Date(user.lastLogin).toLocaleString('vi-VN')
+                        : 'Chưa đăng nhập'
+                }));
+                setUsers(usersWithFormattedDate);
+            } catch (error) {
+                console.error('Lỗi khi lấy danh sách người dùng:', error);
+            }
+        };
+    
+        fetchUsers();
+    }, [searchTerm]); // Tự động gọi lại khi searchTerm thay đổi
+    
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
-
-    const handleAddUser = (user) => {
-        setUsers([...users, { ...user, id: users.length + 1 }]);
-        setShowAddModal(false);
-    };
-
-    const handleEditUser = (user) => {
-        setUsers(users.map((u) => (u.id === user.id ? user : u)));
-        setEditingUser(null);
-    };
-
-    const handleDeleteUser = (id) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa tài khoản này?')) {
-            setUsers(users.filter((u) => u.id !== id));
+    // hàm thêm user
+    const handleAddUser = async (user) => {
+        try {
+            const response = await axios.post('http://localhost:3000/user', user);
+            
+            const newUser = response.data;
+    
+            // Format lại lastLogin trước khi thêm vào state
+            newUser.lastLogin = newUser.lastLogin
+                ? new Date(newUser.lastLogin).toLocaleString('vi-VN')
+                : 'Chưa đăng nhập';
+    
+            setUsers([...users, newUser]);
+            setShowAddModal(false);
+        } catch (error) {
+            console.error('Lỗi khi thêm người dùng:', error);
         }
     };
+    
+
+    // const handleEditUser = (user) => {
+    //     setUsers(users.map((u) => (u.id === user.id ? user : u)));
+    //     setEditingUser(null);
+    // };
+    // hàm xóa user
+    const handleDeleteUser = async (id) => {
+        const confirmDelete = window.confirm('Bạn có chắc chắn muốn xóa người dùng này không?');
+        if (!confirmDelete) return;
+    
+        try {
+            await axios.delete(`http://localhost:3000/user/${id}`);
+            setUsers(users.filter(user => user.id !== id)); // Cập nhật lại danh sách
+        } catch (error) {
+            console.error('Lỗi khi xóa người dùng:', error);
+            alert('Xóa thất bại, vui lòng thử lại.');
+        }
+    };
+    
 
     const getRoleColor = (role) => {
         switch (role) {
@@ -73,13 +136,41 @@ function AccountManagement() {
                 return role;
         }
     };
+    // hàm chỉnh sửa user
+    const handleEditUserSend = async (user) => {
+        try {
+            const res = await axios.patch(`http://localhost:3000/user/${user.id}`, {
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                status: user.status,
+            });
+    
+            if (res.status === 200) {
+                // Cập nhật lại danh sách người dùng trong frontend
+                setUsers(users.map((u) => (u.id === user.id ? res.data : u)));
+                setEditingUser(null); // Đóng modal
+                alert('Cập nhật người dùng thành công');
+            }
+        } catch (error) {
+            console.error('Lỗi khi cập nhật người dùng:', error);
+            alert('Cập nhật thất bại');
+        }
+    };
+    
 
+    
     return (
         <div className="account-management">
             <div className="management-header">
                 <div className="search-bar">
                     <span className="material-symbols-outlined">search</span>
-                    <input type="text" placeholder="Tìm kiếm tài khoản..." />
+                    <input 
+                        type="text" 
+                        placeholder="Tìm kiếm tài khoản..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
                 <button className="add-btn" onClick={() => setShowAddModal(true)}>
                     <span className="material-symbols-outlined">person_add</span>
@@ -132,7 +223,7 @@ function AccountManagement() {
                     </tbody>
                 </table>
             </div>
-
+            
             {showAddModal && (
                 <div className="modal-overlay">
                     <div className="modal-content">
@@ -185,7 +276,7 @@ function AccountManagement() {
                             onSubmit={(e) => {
                                 e.preventDefault();
                                 const formData = new FormData(e.target);
-                                handleEditUser({
+                                handleEditUserSend({
                                     ...editingUser,
                                     username: formData.get('username'),
                                     email: formData.get('email'),

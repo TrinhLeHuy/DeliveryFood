@@ -5,4 +5,6 @@ export class CreateUserDto {
      password: string;
      sdt?: string;
      role?: string;
+     status?: string; 
+     lastLogin?: Date;
 }
